@@ -23,7 +23,7 @@ the share sheet (Gmail, Messages, Notes, Save to Files, AirDrop), or Copy report
 ```yaml
 packages:
   ReportKit:
-    path: ../ReportKit          # or url: https://github.com/billdonner/ReportKit, from: 0.1.0
+    path: ../ReportKit          # or url: https://github.com/billdonner/ReportKit, from: 0.1.1
 targets:
   MyApp:
     dependencies:
@@ -37,7 +37,7 @@ import ReportKit
 
 @main struct MyApp: App {
     @State private var reporter = Reporter(
-        ReportConfiguration(appName: "Qross", recipients: ["info@1041soft.com"],
+        ReportConfiguration(appName: "Qross", recipients: ["support@1041soft.com"],
                             logSubsystem: "com.billdonner.qross"),
         context: { ["screen": Router.shared.screenName] }   // anything that helps, read on open
     )
@@ -54,7 +54,8 @@ ReportButton()            // "Report a problem"
 Log with `Logger(subsystem: "com.billdonner.qross", category: ...)` and those lines come with
 every report. `context` runs on the main actor each time the sheet opens.
 
-**Privacy:** nothing is collected by the app or sent anywhere automatically, so the App Store
+**Privacy:** the package ships its own privacy manifest (free disk space, reason 7D9E.1:
+an optional bug report). Nothing is collected by the app or sent anywhere automatically, so the App Store
 answer stays "Data Not Collected". Crash reports stay in Caches until a report is sent.
 
 ## Layout

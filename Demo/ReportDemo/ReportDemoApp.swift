@@ -5,7 +5,7 @@ import SwiftUI
 @main
 struct ReportDemoApp: App {
     @State private var reporter = Reporter(
-        ReportConfiguration(appName: "Report Demo", recipients: ["info@1041soft.com"],
+        ReportConfiguration(appName: "Report Demo", recipients: ["support@1041soft.com"],
                             logSubsystem: "com.billdonner.ReportDemo"),
         context: { ["screen": "Home", "palette": "coral"] }
     )

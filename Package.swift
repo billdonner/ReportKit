@@ -11,7 +11,7 @@ let package = Package(
     ],
     targets: [
         // Foundation only: what a report contains. Builds and tests on the Mac in seconds.
-        .target(name: "ReportCore"),
+        .target(name: "ReportCore", resources: [.copy("PrivacyInfo.xcprivacy")]),
         // The iPhone and iPad side: the sheet, shake and screenshot triggers, mail, crash reports.
         .target(name: "ReportKit", dependencies: ["ReportCore"]),
         .testTarget(name: "ReportCoreTests", dependencies: ["ReportCore"]),
