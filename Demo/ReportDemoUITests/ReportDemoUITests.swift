@@ -4,6 +4,7 @@ final class ReportDemoUITests: XCTestCase {
     func testReportSheetOpensAndSends() throws {
         let app = XCUIApplication()
         app.launch()
+        app.buttons["Settings"].tap()
         app.buttons["Report a problem"].tap()
         XCTAssertTrue(app.navigationBars["Report a problem"].waitForExistence(timeout: 5))
         let send = app.navigationBars.buttons["Send"]

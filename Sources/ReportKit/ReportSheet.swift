@@ -8,7 +8,6 @@ import UIKit
 /// up; otherwise the share sheet (Gmail, Messages, Notes, AirDrop) or Copy.
 struct ReportSheet: View {
     @Bindable var reporter: Reporter
-    @Environment(\.dismiss) private var dismiss
     @State private var sending: Report?
     @State private var sharing: [URL]?
     @State private var copied = false
@@ -61,7 +60,7 @@ struct ReportSheet: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { dismiss() }
+                        Button("Cancel") { reporter.close() }
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Send") { send(draft.wrappedValue) }
@@ -69,6 +68,7 @@ struct ReportSheet: View {
                     }
                 }
                 .onAppear { writing = true }
+                .onDisappear { reporter.closed() }
                 .sheet(item: $sending) { report in
                     MailComposer(report: report, recipients: reporter.configuration.recipients) { sent in
                         sending = nil
@@ -103,7 +103,7 @@ struct ReportSheet: View {
 
     private func finish() {
         reporter.crashes.removeAll()
-        dismiss()
+        reporter.close()
     }
 }
 

@@ -13,27 +13,16 @@ extension View {
 }
 
 private struct Reportable: ViewModifier {
-    @Bindable var reporter: Reporter
+    let reporter: Reporter
 
     func body(content: Content) -> some View {
         content
             .environment(reporter)
-            .sheet(item: $reporter.draft) { _ in
-                ReportSheet(reporter: reporter)
-            }
-            .alert("Report a problem?", isPresented: $reporter.offeringAfterScreenshot) {
-                Button("Report") { reporter.present() }
-                Button("Not now", role: .cancel) {}
-            } message: {
-                Text("Send this screen to the \(reporter.configuration.appName) team with a note.")
-            }
             .onReceive(NotificationCenter.default.publisher(for: .reportKitDeviceShaken)) { _ in
                 if reporter.opensOnShake { reporter.present() }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
-                if reporter.offersAfterScreenshot, reporter.draft == nil {
-                    reporter.offeringAfterScreenshot = true
-                }
+                if reporter.offersAfterScreenshot { reporter.offer() }
             }
     }
 }
@@ -69,13 +58,23 @@ extension UIWindow {
 }
 
 /// The screen as the person sees it, captured before the sheet covers it.
+@MainActor
 enum ScreenCapture {
-    @MainActor
-    static func keyWindow() -> UIImage? {
-        let window = UIApplication.shared.connectedScenes
+    static var window: UIWindow? {
+        UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap(\.windows)
             .first(where: \.isKeyWindow)
+    }
+
+    /// What's showing on top: the root, or the last sheet or alert presented over it.
+    static func topController() -> UIViewController? {
+        var top = window?.rootViewController
+        while let next = top?.presentedViewController, !next.isBeingDismissed { top = next }
+        return top
+    }
+
+    static func keyWindow() -> UIImage? {
         guard let window else { return nil }
         let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
         return renderer.image { _ in

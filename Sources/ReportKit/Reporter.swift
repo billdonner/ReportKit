@@ -17,9 +17,12 @@ public final class Reporter {
     public var offersAfterScreenshot = true
     /// Open the sheet when the device is shaken.
     public var opensOnShake = true
+    /// Details the app keeps current as things change (the tab, the layout). Merged over
+    /// `context` when a report opens.
+    @ObservationIgnored public var details: [String: String] = [:]
 
     var draft: Draft?
-    var offeringAfterScreenshot = false
+    @ObservationIgnored private weak var sheet: UIViewController?
 
     let crashes: CrashStore
     @ObservationIgnored private var crashCollector: CrashCollector?
@@ -35,17 +38,45 @@ public final class Reporter {
         crashCollector = CrashCollector(store: crashes)
     }
 
-    /// Captures the screen as it is now, then opens the sheet over it.
+    /// Captures the screen as it is now, then opens the sheet over whatever is showing,
+    /// including the app's own sheets.
     public func present() {
-        guard draft == nil else { return }
+        guard draft == nil, let top = ScreenCapture.topController() else { return }
         draft = Draft(screenshot: ScreenCapture.keyWindow(), diagnostics: diagnostics())
+        let host = UIHostingController(rootView: ReportSheet(reporter: self))
+        sheet = host
+        top.present(host, animated: true)
+    }
+
+    /// After a screenshot: asks whether to report it.
+    func offer() {
+        guard draft == nil, let top = ScreenCapture.topController(), !(top is UIAlertController) else { return }
+        let alert = UIAlertController(
+            title: "Report a problem?",
+            message: "Send this screen to the \(configuration.appName) team with a note.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Report", style: .default) { [weak self] _ in self?.present() })
+        top.present(alert, animated: true)
+    }
+
+    func close() {
+        sheet?.dismiss(animated: true)
+        closed()
+    }
+
+    /// The sheet went away, by Cancel, Send or a swipe.
+    func closed() {
+        sheet = nil
+        draft = nil
     }
 
     func diagnostics() -> Diagnostics {
         let device = UIDevice.current
         return Diagnostics.collect(
             appName: configuration.appName,
-            context: context(),
+            context: context().merging(details) { _, detail in detail },
             system: "\(device.systemName) \(device.systemVersion)"
         )
     }

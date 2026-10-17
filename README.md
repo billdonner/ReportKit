@@ -23,7 +23,7 @@ the share sheet (Gmail, Messages, Notes, Save to Files, AirDrop), or Copy report
 ```yaml
 packages:
   ReportKit:
-    path: ../ReportKit          # or url: https://github.com/billdonner/ReportKit, from: 0.1.1
+    path: ../ReportKit          # or url: https://github.com/billdonner/ReportKit, from: 0.1.2
 targets:
   MyApp:
     dependencies:
@@ -50,6 +50,10 @@ import ReportKit
 // In Settings:
 ReportButton()            // "Report a problem"
 ```
+
+The sheet opens over whatever is showing, including the app's own sheets, so `ReportButton`
+works inside a Settings sheet. For details that change as the person moves around, set them as
+they change: `reporter.details["tab"] = "Your posts"`. They're merged over `context`.
 
 Log with `Logger(subsystem: "com.billdonner.qross", category: ...)` and those lines come with
 every report. `context` runs on the main actor each time the sheet opens.
